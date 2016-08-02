@@ -9,34 +9,133 @@ import java.util.List;
 
 import javax.swing.JFileChooser;
 
-import assets.Cards;
+import assets.*;
 
 public class Board {
 
-	public ArrayList humanPlayers; //An array of actual players
+	public ArrayList <Player> humanPlayers; //An array of actual players
 	public Player[] allPlayers; //Array of all actual game pieces
 	public Room[] rooms; //Array of all rooms
 	public Weapon[] weap; //Array of all Weapons
-	// Array of cards
-	// Array of guilty
+	public Cards[] guiltyCards; //The 3 guilty cards
 	// Win State
 	public Position[][] Map; //2D Array of positions on the map
-	// Current players turn
+	public int currentPlayer = 0; //Current players turn
+	
+	Scanner scan;
 
 	public Board() {
 
 		createMap();  //Creates a map of the game using 2D array of positions
 		placePlayers(); //Creates and places the player in starting positions,
 		createRooms(); //Creates an array of rooms who know their positions
-		scatterWeapons(); //Scatters the weopons randomly into the rooms
+		scatterWeapons(); //Scatters the weapons randomly into the rooms
 		humanPlayers(); // Asks how many players are playing.
-		createCards(); //create, distribute guilty
-		// Distribute remaining cards
+		createCards(); //create, distribute guilty cards
+		scan = new Scanner(System.in);
+		takeTurn(); //first turn to scarlet
 
-		// Reveal Left over cards
-
-		// First Turn to Scarlet
 	}
+	
+	public void takeTurn(){
+		display();
+		Player current = humanPlayers.get(currentPlayer);
+		System.out.println("It is "+ current.name + " Turn. Would you like to Roll, Accuse or Display Innocent Cards?");
+		
+		String s = scan.nextLine();
+		while(!(s.equalsIgnoreCase("Roll")||s.equalsIgnoreCase("Accuse")||s.equalsIgnoreCase("Display Innocent Cards"))){
+			System.out.println("Invalid Response");
+			s = scan.nextLine();
+		}
+        if(s.equalsIgnoreCase("Display Innocent Cards")){
+        	current.displayCards();
+        	System.out.println(" Turn. Would you like to Roll, Accuse?");
+        	s = scan.nextLine();
+        	while(!(s.equalsIgnoreCase("Roll")||s.equalsIgnoreCase("Accuse"))){
+    			System.out.println("Invalid Response");
+    			s = scan.nextLine();
+    		}
+        }
+        //scan.close();
+		if(s.equalsIgnoreCase("Roll")){
+			int roll = randomInt(1,12);
+			current.move(roll,scan);
+			
+		}
+		else if(s.equalsIgnoreCase("Accuse")){
+			//current.accuse();
+		}
+		
+		
+		
+		
+		if(current.room != null){
+			System.out.println("Would you like to Accuse, Suspect, Display Innocent Cards or End Turn?");
+
+			s = scan.nextLine();
+			while(!(s.equalsIgnoreCase("Accuse")||s.equalsIgnoreCase("Suspect")||s.equalsIgnoreCase("End Turn")||s.equalsIgnoreCase("Display Innocent Cards"))){
+				System.out.println("Invalid Response");
+				s = scan.nextLine();
+			}
+			if(s.equalsIgnoreCase("Display Innocent Cards")){
+	        	current.displayCards();
+	        	System.out.println("Would you like to Suspect, Accuse or End Turn?");
+	        	s = scan.nextLine();
+	        	while(!(s.equalsIgnoreCase("Suspect")||s.equalsIgnoreCase("Accuse")||s.equalsIgnoreCase("End Turn"))){
+	    			System.out.println("Invalid Response");
+	    			s = scan.nextLine();
+	    		}
+	        }
+			if(s.equalsIgnoreCase("Accuse")){
+				current.accuse();
+			}
+			else if(s.equalsIgnoreCase("Suspect")){
+				current.suspect();
+			}
+			//scan.close();
+		}
+		else{
+			System.out.println("Would you like to Accuse, Display Innocent Cards or End Turn?");
+			//Scanner scan3 = new Scanner(System.in);
+			
+			s = scan.nextLine();
+			while(!(s.equalsIgnoreCase("Accuse")||s.equalsIgnoreCase("End Turn")||s.equalsIgnoreCase("Display Innocent Cards"))){
+				System.out.println("Invalid Response");
+				s = scan.nextLine();
+			}
+			if(s.equalsIgnoreCase("Display Innocent Cards")){
+	        	current.displayCards();
+	        	System.out.println("Would you like to Accuse or End Turn?");
+	        	s = scan.nextLine();
+	        	while(!(s.equalsIgnoreCase("Accuse")||s.equalsIgnoreCase("End Turn"))){
+	    			System.out.println("Invalid Response");
+	    			s = scan.nextLine();
+	    		}
+	        }
+			if(s.equalsIgnoreCase("Accuse")){
+				current.accuse();
+			}
+			
+		}
+			
+			System.out.println("Your turn is now over. Type anything when next player is ready");	
+			//Scanner scan4 = new Scanner(System.in);
+				s = scan.nextLine();
+				
+				currentPlayer++;
+				if(currentPlayer >= humanPlayers.size()){currentPlayer = 0;}
+				while(!humanPlayers.get(currentPlayer).inPlay){
+					currentPlayer++;
+					if(currentPlayer >= humanPlayers.size()){currentPlayer = 0;}
+				}
+				System.out.flush();
+				//scan.close();
+				System.out.println("We got to the End");
+				takeTurn();
+		
+	}
+	
+
 
 	// TAKE TURN
 	// find current player
@@ -92,28 +191,28 @@ public class Board {
 						Position p;
 						switch (c[i]) {
 						case 'X':
-							p = new BlockedPosition();
+							p = new BlockedPosition(i,y);
 							break;
 						case 'B':
-							p = new MoveablePosition();
+							p = new MoveablePosition(i,y);
 							break;
 						case 'R':
-							p = new RoomPosition();
+							p = new RoomPosition(i,y);
 							break;
 						case '-':
-							p = new MoveablePosition();
+							p = new MoveablePosition(i,y);
 							break;
 						case 'N':
-							p = new NorthEntrancePosition();
+							p = new NorthEntrancePosition(i,y);
 							break;
 						case 'E':
-							p = new EastEntrancePosition();
+							p = new EastEntrancePosition(i,y);
 							break;
 						case 'S':
-							p = new SouthEntrancePosition();
+							p = new SouthEntrancePosition(i,y);
 							break;
 						case 'W':
-							p = new WestEntrancePosition();
+							p = new WestEntrancePosition(i,y);
 							break;
 						default:
 							// should do something meaningful instead of just
@@ -161,40 +260,56 @@ public class Board {
 	
 	public void createRooms(){
 		rooms = new Room[9];
+		
 		ArrayList kpos = iterateRooms(0,5,1,6);
 		kpos.remove(Map[0][6]);
-		rooms[0] = new Room("Kitchen", kpos, true);
+		rooms[0] = new Room("Kitchen", kpos);
+		
 		ArrayList Ballpos = iterateRooms(8,15,1,7);
 		Ballpos.remove(Map[8][1]);
 		Ballpos.remove(Map[9][1]);
 		Ballpos.remove(Map[14][1]);
 		Ballpos.remove(Map[15][1]);
-		rooms[1] = new Room("Ball Room", Ballpos, false);
+		
+		rooms[1] = new Room("Ball Room", Ballpos);
 		ArrayList Conpos = iterateRooms(18,23,1,5);
 		Conpos.remove(Map[18][5]);
 		Conpos.remove(Map[23][5]);
-		rooms[2] = new Room("Conservatory", Conpos, true);
+		rooms[2] = new Room("Conservatory", Conpos);
+		
 		ArrayList Dinpos = iterateRooms(0,7,9,15);
 		Dinpos.remove(Map[5][9]);
 		Dinpos.remove(Map[6][9]);
 		Dinpos.remove(Map[7][9]);
-		rooms[3] = new Room("Dining Room", Dinpos, false);
+		rooms[3] = new Room("Dining Room", Dinpos);
+		
 		ArrayList Billpos = iterateRooms(18,23,8,12);
-		rooms[4] = new Room("Billiard Room", Billpos, false);
+		rooms[4] = new Room("Billiard Room", Billpos);
+		
 		ArrayList Libpos = iterateRooms(17,23,14,18);
 		Libpos.remove(Map[17][14]);
 		Libpos.remove(Map[17][18]);
 		Libpos.remove(Map[23][14]);
 		Libpos.remove(Map[23][18]);
-		rooms[5] = new Room("Library", Libpos, false);
+		rooms[5] = new Room("Library", Libpos);
+		
 		ArrayList Loupos = iterateRooms(0,6,19,24);
 		Loupos.remove(Map[6][24]);
-		rooms[6] = new Room("Lounge", Loupos, true);
+		rooms[6] = new Room("Lounge", Loupos);
+		
 		ArrayList Halpos = iterateRooms(9,14,18,24);
-		rooms[7] = new Room("Hall", Halpos, false);
+		rooms[7] = new Room("Hall", Halpos);
+		
 		ArrayList Stupos = iterateRooms(17,23,21,24);
 		Loupos.remove(Map[17][24]);
-		rooms[8] = new Room("Study", Stupos, true);
+		rooms[8] = new Room("Study", Stupos);
+		
+		//Adding Corner passageways
+		rooms[0].addCornerRoom(rooms[8]);
+		rooms[8].addCornerRoom(rooms[0]);
+		rooms[2].addCornerRoom(rooms[6]);
+		rooms[6].addCornerRoom(rooms[2]);
+		
 		
 	}
     public ArrayList iterateRooms(int startx, int endx, int starty, int endy){
@@ -220,7 +335,7 @@ public class Board {
        int count = 0;
        while(count < 6){
        int ran = randomInt(0,9);
-       System.out.print(ran);
+       //System.out.print(ran);
        if(rooms[ran].weapons.isEmpty()){
     	  rooms[ran].weapons.add(weap[count]);
     	  count++;
@@ -249,18 +364,95 @@ public class Board {
 			this.humanPlayers = new ArrayList<Player>();
 			for (int i = 0; i < numPlayer; i++) {
 				humanPlayers.add(allPlayers[i]);
-
+				humanPlayers.get(i).inPlay=true;
 			}
 		} else {
 			System.out.println("Invalid Integer. Must be between 1-6");
 			humanPlayers();
 		}
+		
 
 	}
 	
 	public void createCards(){
-		Set pack = new HashSet();
-		//Add all cards to Game Pls
+		ArrayList<Cards> pack = new ArrayList<Cards>();
+		guiltyCards = new Cards[3];
+		//Add all cards to Game Pack
+		pack.add(new CharacterCard("Scarlet"));
+		pack.add(new CharacterCard("White"));		
+		pack.add(new CharacterCard("Green"));
+		pack.add(new CharacterCard("Mustard"));
+		pack.add(new CharacterCard("Peacock"));
+		pack.add(new CharacterCard("Plum"));
+		
+		pack.add(new WeaponCard("Candlestick"));
+		pack.add(new WeaponCard("Dagger"));
+		pack.add(new WeaponCard("Lead Pipe"));
+		pack.add(new WeaponCard("Revolver"));
+		pack.add(new WeaponCard("Rope"));
+		pack.add(new WeaponCard("Spanner"));
+		
+		pack.add(new RoomCard("Kitchen"));
+		pack.add(new RoomCard("Ball Room"));
+		pack.add(new RoomCard("Conservatory"));
+		pack.add(new RoomCard("Billiard Room"));
+		pack.add(new RoomCard("Library"));
+		pack.add(new RoomCard("Study"));
+		pack.add(new RoomCard("Hall"));
+		pack.add(new RoomCard("Lounge"));
+		pack.add(new RoomCard("Dining Room"));
+		
+		//Select guilty cards
+		int rand = (int)Math.ceil(Math.random()*pack.size()-1);
+		Cards c = pack.get(rand);
+		
+		//Selecting guilty character
+		do{
+			rand = (int)Math.ceil(Math.random()*pack.size()-1);
+			c = pack.get(rand);
+		}while(!(c instanceof CharacterCard));
+		guiltyCards[0] = c;
+		pack.remove(c);
+		
+		//Selecting guilty room
+		do{
+			rand = (int)Math.ceil(Math.random()*pack.size()-1);
+			c = pack.get(rand);
+		}while(!(c instanceof RoomCard));
+		guiltyCards[1] = c;
+		pack.remove(c);
+		
+		//Selecting guilty weapon
+		do{
+			rand = (int)Math.ceil(Math.random()*pack.size()-1);
+			c = pack.get(rand);
+		}while(!(c instanceof WeaponCard));
+		guiltyCards[2] = c;
+		pack.remove(c);
+		
+		
+		//Compute amount of cards to deal evenly and how many cards will remain
+		int cardsToDeal = (pack.size() % humanPlayers.size());
+		cardsToDeal = pack.size() - cardsToDeal;
+		
+		//Deal cards to players
+		int curHuman=0;
+		while(cardsToDeal>0){
+			rand = (int)Math.ceil(Math.random()*pack.size()-1);
+			humanPlayers.get(curHuman++).dealCard(pack.get(rand));
+			pack.remove(rand);
+			cardsToDeal--;
+			if(curHuman==humanPlayers.size()){
+				curHuman=0;
+			}
+		}
+		
+		//reveal remaining cards to all players
+		for(Cards remainingCards : pack){
+			for(Player p : humanPlayers){
+				p.addToInnoccent(remainingCards);
+			}
+		}
 		
 	}
 	
@@ -274,10 +466,11 @@ public class Board {
 				else{
 				System.out.print(Map[x][y].toString());
 				}				
-				
 			}
+			//System.out.print(y);
 			System.out.println();
 		}
+		//System.out.println("ABCDEFGHIJKLMNOPQRSTUVWXY");
 		
 	}
 }

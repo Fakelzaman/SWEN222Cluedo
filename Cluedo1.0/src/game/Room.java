@@ -6,16 +6,20 @@ import java.util.ArrayList;
 public class Room {
 	
 	public String name;
-	public ArrayList pos;
-	public Boolean corner = false;
+	public ArrayList<Position> pos;
+	public Room corner;
 	public ArrayList players = new ArrayList<Player>();
 	public ArrayList weapons = new ArrayList<Weapon>();
 	
-	public Room(String name, ArrayList pos, Boolean corner){
+	public Room(String name, ArrayList<Position> pos){
 		this.name = name;
 		this.pos = pos;
 		this.corner = corner;
 		
+	}
+	
+	public void addCornerRoom(Room r){
+		this.corner = r;
 	}
 	//Name
 	//Positions occupied

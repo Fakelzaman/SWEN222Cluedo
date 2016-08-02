@@ -2,6 +2,14 @@ package game;
 
 public class RoomPosition extends Position {
 
+	
+	protected int x;
+	protected int y;
+	
+	public RoomPosition(int x, int y){
+		super(x,y);
+	}
+	
 	public String toString(){
 		return "R";
 	}	
